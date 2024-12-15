@@ -1,0 +1,95 @@
+#include <iostream>
+#include <string>
+#include <cmath>
+#include <cctype>
+using namespace std;
+
+struct Node { char data; Node* next; };
+
+class Stack {
+private:
+    Node* top;
+public:
+    Stack() : top(nullptr) {}
+    void push(char val) { Node* newNode = new Node{val, top}; top = newNode; }
+    char pop() { if (top) { char val = top->data; Node* temp = top; top = top->next; delete temp; return val; } return '\0'; }
+    char peek() { return top ? top->data : '\0'; }
+    bool isEmpty() { return !top; }
+};
+
+int precedence(char op) { return (op == '+' || op == '-') ? 1 : (op == '*' || op == '/') ? 2 : (op == '^') ? 3 : 0; }
+
+string reverseString(string str) {
+    int n = str.size(); for (int i = 0; i < n / 2; i++) swap(str[i], str[n - i - 1]); return str;
+}
+
+string infixToPostfix(string infix) {
+    Stack s; string result = "";
+    for (char& c : infix) {
+        if (isalnum(c)) result += c;
+        else if (c == '(') s.push(c);
+        else if (c == ')') {
+            while (!s.isEmpty() && s.peek() != '(') result += s.pop();
+            s.pop();
+        } else {
+            while (!s.isEmpty() && precedence(s.peek()) >= precedence(c)) result += s.pop();
+            s.push(c);
+        }
+    }
+    while (!s.isEmpty()) result += s.pop();
+    return result;
+}
+
+string infixToPrefix(string infix) {
+    reverseString(infix); Stack s; string result = "";
+    for (char& c : infix) {
+        if (isalnum(c)) result += c;
+        else if (c == ')') s.push(c);
+        else if (c == '(') {
+            while (!s.isEmpty() && s.peek() != ')') result += s.pop();
+            s.pop();
+        } else {
+            while (!s.isEmpty() && precedence(s.peek()) > precedence(c)) result += s.pop();
+            s.push(c);
+        }
+    }
+    while (!s.isEmpty()) result += s.pop();
+    return reverseString(result);
+}
+
+int evaluatePostfix(string postfix) {
+    Stack s;
+    for (char& c : postfix) {
+        if (isdigit(c)) s.push(c - '0');
+        else {
+            int b = s.pop(), a = s.pop();
+            switch (c) { case '+': s.push(a + b); break; case '-': s.push(a - b); break; case '*': s.push(a * b); break; case '/': s.push(a / b); break; case '^': s.push(pow(a, b)); break; }
+        }
+    }
+    return s.pop();
+}
+
+int evaluatePrefix(string prefix) {
+    Stack s;
+    for (int i = prefix.size() - 1; i >= 0; i--) {
+        char c = prefix[i];
+        if (isdigit(c)) s.push(c - '0');
+        else {
+            int a = s.pop(), b = s.pop();
+            switch (c) { case '+': s.push(a + b); break; case '-': s.push(a - b); break; case '*': s.push(a * b); break; case '/': s.push(a / b); break; case '^': s.push(pow(a, b)); break; }
+        }
+    }
+    return s.pop();
+}
+
+int main() {
+    string infix, postfix, prefix;
+    cout << "Enter infix: "; cin >> infix;
+    postfix = infixToPostfix(infix); prefix = infixToPrefix(infix);
+    cout << "Postfix: " << postfix << "\nPrefix: " << prefix << endl;
+    cout << "Evaluate postfix: "; cin >> postfix;
+    cout << "Postfix Eval: " << evaluatePostfix(postfix) << endl;
+    cout << "Evaluate prefix: "; cin >> prefix;
+    cout << "Prefix Eval: " << evaluatePrefix(prefix) << endl;
+    return 0;
+}
