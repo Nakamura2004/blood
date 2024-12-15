@@ -1,0 +1,80 @@
+#include <iostream>
+using namespace std;
+
+struct TBTNode {
+    int data;
+    TBTNode* left, * right;
+    bool leftThread, rightThread;
+    TBTNode(int val) : data(val), left(nullptr), right(nullptr), leftThread(false), rightThread(false) {}
+};
+
+class TBT {
+public:
+    TBTNode* root;
+    int maxNodes; 
+
+    TBT(int limit) : root(nullptr), maxNodes(limit) {}
+
+    TBTNode* insert(TBTNode* root, int val) {
+        if (!root) return new TBTNode(val);
+        if (val < root->data) root->left = insert(root->left, val);
+        else root->right = insert(root->right, val);
+        return root;
+    }
+
+    void inorderThread(TBTNode* root, TBTNode*& prev) {
+        if (!root) return;
+        inorderThread(root->left, prev);
+        if (!root->left) { root->left = prev; root->leftThread = true; }
+        if (prev && !prev->right) { prev->right = root; prev->rightThread = true; }
+        prev = root;
+        inorderThread(root->right, prev);
+    }
+
+    void inorderTraversal(TBTNode* root) {
+        TBTNode* current = root;
+        int count = 0;
+        while (current && count < maxNodes) {
+            while (current && !current->leftThread) current = current->left;
+            if (current) {
+                cout << current->data << " ";
+                count++;
+                current = current->rightThread ? current->right : current->right;
+            }
+        }
+        cout << endl;
+    }
+
+    void preorderTraversal(TBTNode* root) {
+        if (!root || maxNodes == 0) return;
+        cout << root->data << " ";
+        maxNodes--;
+        preorderTraversal(root->left && !root->leftThread ? root->left : root->right);
+    }
+};
+
+int main() {
+    TBT tree(6); 
+
+    TBTNode* root = nullptr;
+    root = tree.insert(root, 50);
+    tree.insert(root, 30);
+    tree.insert(root, 20);
+    tree.insert(root, 40);
+    tree.insert(root, 70);
+    tree.insert(root, 60);
+    tree.insert(root, 80);
+
+    TBTNode* prev = nullptr;
+    tree.inorderThread(root, prev);
+
+    cout << "In-order Traversal : ";
+    tree.inorderTraversal(root);
+
+    cout << "Pre-order Traversal : ";
+    tree.preorderTraversal(root);
+    cout << endl;
+
+    return 0;
+}
+
