@@ -1,0 +1,84 @@
+#include <iostream>
+#include <stack>
+#include <string>
+using namespace std;
+
+struct TreeNode {
+    char value;
+    TreeNode *left, *right;
+    TreeNode(char val) : value(val), left(nullptr), right(nullptr) {}
+};
+
+bool isOperator(char c) {
+    return (c == '+' || c == '-' || c == '*' || c == '/');
+}
+
+void inOrder(TreeNode* root) {
+    if (root) {
+        inOrder(root->left);
+        cout << root->value << " ";
+        inOrder(root->right);
+    }
+}
+
+void inOrderNonRecursive(TreeNode* root) {
+    stack<TreeNode*> s;
+    TreeNode* curr = root;
+    while (curr || !s.empty()) {
+        while (curr) {
+            s.push(curr);
+            curr = curr->left;
+        }
+        curr = s.top(); s.pop();
+        cout << curr->value << " ";
+        curr = curr->right;
+    }
+}
+
+TreeNode* constructPostfix(const string& postfix) {
+    stack<TreeNode*> s;
+    for (char c : postfix) {
+        if (isOperator(c)) {
+            TreeNode* right = s.top(); s.pop();
+            TreeNode* left = s.top(); s.pop();
+            TreeNode* node = new TreeNode(c);
+            node->left = left; node->right = right;
+            s.push(node);
+        } else {
+            s.push(new TreeNode(c));
+        }
+    }
+    return s.top();
+}
+
+TreeNode* constructPrefix(const string& prefix) {
+    stack<TreeNode*> s;
+    for (int i = prefix.size() - 1; i >= 0; --i) {
+        char c = prefix[i];
+        if (isOperator(c)) {
+            TreeNode* left = s.top(); s.pop();
+            TreeNode* right = s.top(); s.pop();
+            TreeNode* node = new TreeNode(c);
+            node->left = left; node->right = right;
+            s.push(node);
+        } else {
+            s.push(new TreeNode(c));
+        }
+    }
+    return s.top();
+}
+
+int main() {
+    string postfix = "ab+c*";
+    string prefix = "*+abc";
+
+    TreeNode* rootPostfix = constructPostfix(postfix);
+    TreeNode* rootPrefix = constructPrefix(prefix);
+
+    cout << "In-order (Postfix): "; inOrder(rootPostfix); cout << endl;
+    cout << "In-order (Prefix): "; inOrder(rootPrefix); cout << endl;
+    cout << "In-order (Postfix - Non-recursive): "; inOrderNonRecursive(rootPostfix); cout << endl;
+    cout << "In-order (Prefix - Non-recursive): "; inOrderNonRecursive(rootPrefix); cout << endl;
+
+    return 0;
+}
